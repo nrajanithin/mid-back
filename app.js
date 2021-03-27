@@ -24,10 +24,10 @@ app.use(cors())
 
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
-app.get('/',(req,res)=>{
+app.get('/',async(req,res)=>{
   const sql = `select sum(spend) as ss,store_r from tr, pr where pr.PRODUCT_NUM=tr.PRODUCT_NUM and pr.DEPARTMENT='PHARMA' group
   by store_r;`
-  con.query(sql, function (err, result) {
+  con.query(sql, async(err, result) => {
     if (err) 
     {
       throw err;
@@ -37,23 +37,24 @@ app.get('/',(req,res)=>{
   });
   
 })
-app.get('/food',(req,res)=>{
+app.get('/food',async(req,res)=>{
   const sql = `select sum(spend) as ss,store_r from tr, pr where pr.PRODUCT_NUM=tr.PRODUCT_NUM and pr.DEPARTMENT='FOOD' group
   by store_r;`
-  con.query(sql, function (err, result) {
+  //console.log(con.execute(sql))
+  con.query(sql, async (err, result) => {
     if (err) 
     {
       throw err;
     }
-    console.log("Result: " + result);
+    //console.log("Result: " + result);
     res.send(result);
   });
   
 })
-app.get('/nonfood',(req,res)=>{
+app.get('/nonfood',async(req,res)=>{
   const sql = `select sum(spend) as ss,store_r from tr, pr where pr.PRODUCT_NUM=tr.PRODUCT_NUM and pr.DEPARTMENT='NON-FOOD' group
   by store_r;`
-  con.query(sql, function (err, result) {
+  con.query(sql, async (err, result) => {
     if (err) 
     {
       throw err;
@@ -139,7 +140,10 @@ let csvStream = fastcsv
       refer = 1;
     }
     else{
+      if(data.length > 0 && data[0]!='')
+     {
       csvData.push(data);
+     }
     }
   })
   .on("end", function() {
@@ -169,7 +173,8 @@ let csvStream = fastcsv
   });
 
 stream.pipe(csvStream);
-    
+
+    res.send("ok");
 })
 //===========================================================================
 app.post('/data/pr',(req,res)=>{
@@ -194,7 +199,10 @@ let csvStream = fastcsv
      refer = 1;
    }
    else{
-    csvData.push(data);
+    if(data.length > 0 && data[0]!='')
+     {
+      csvData.push(data);
+     }
    }
    
  })
@@ -225,7 +233,7 @@ let csvStream = fastcsv
  });
 
 stream.pipe(csvStream);
-   
+   res.send("ok");
 })
 //=======================================================
 app.post('/data/tr',(req,res)=>{
@@ -251,7 +259,11 @@ let csvStream = fastcsv
    }
    else
    {
-    csvData.push(data);
+     if(data.length > 0 && data[0]!='')
+     {
+      csvData.push(data);
+     }
+    
    }
  })
  .on("end", function() {
@@ -274,6 +286,7 @@ let csvStream = fastcsv
        let query =
          "INSERT INTO TR VALUES ?";
        connection.query(query, [csvData], (error, response) => {
+         console.log("raja nithin varma nandimandalam");
          console.log(error || response);
        });
      }
@@ -281,8 +294,9 @@ let csvStream = fastcsv
  });
 
 stream.pipe(csvStream);
-   
+   res.send("ok");
 })
+
 app.listen(5000,()=>{
     console.log("connected to port 5000")
 })
